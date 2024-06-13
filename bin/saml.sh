@@ -2,7 +2,7 @@
 
 CONFIG_DIR="$HOME/.saml-auth"
 CONFIG_FILE="$CONFIG_DIR/saml_profile.config"
-VERSION="v5.0.0"
+VERSION="v5.0.1"
 
 # Function to load profiles from the configuration file
 load_profiles() {
@@ -151,7 +151,7 @@ login_with_profile() {
     echo "aws_profile             = $profile" >> ~/.saml2aws
 
     echo "Logging in with profile '$profile'"
-    echo $password
+
     # Execute saml2aws login using the current profile
     saml2aws login --force --username=$SAML_EMAIL --password=$password --skip-prompt
 
