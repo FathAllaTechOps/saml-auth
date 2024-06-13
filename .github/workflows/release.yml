@@ -1,9 +1,9 @@
 name: Release Workflow
 
 on:
-  push:
-    branches:
-      - fix/release
+  # push:
+  #   branches:
+  #     - fix/release
   workflow_dispatch:
     inputs:
       version:
@@ -79,7 +79,7 @@ jobs:
 
       - name: Push updated formula to Homebrew repository
         run: |
-          brew_sha=$(cat sha256.txt)
+          # brew_sha=$(cat sha256.txt)
           new_version="${{ github.event.inputs.version }}"
 
           # Update the version in the URL
@@ -89,7 +89,7 @@ jobs:
           sed -i '' "s/version .*/version \"$new_version\"/g" Formula/saml-auth.rb
 
           # Update the SHA 
-          sed -i '' "s/sha256 .*/sha256 \"$brew_sha\"/g" Formula/saml-auth.rb
+          sed -i '' "s/sha256 .*/sha256 \"${{ steps.calculate_sha256.outputs.sha256 }}\"/g" Formula/saml-auth.rb
 
           git add Formula/saml-auth.rb
           git commit -m "Update saml-auth formula to version ${{ github.event.inputs.version }}"
