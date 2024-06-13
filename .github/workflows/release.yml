@@ -9,7 +9,7 @@ on:
       version:
         description: 'Release version'
         required: true
-        default: v2.0.0
+        default: v3.0.0
 
 permissions:
       id-token: write   # This is required for requesting the JWT
@@ -46,8 +46,8 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ github.event.inputs.version }}
-          release_name: Release ${{ github.event.inputs.version }}
+          tag_name: ${{ inputs.version }}
+          release_name: Release ${{ inputs.version }}
           draft: false
           prerelease: false
 
@@ -71,10 +71,16 @@ jobs:
           name: saml-auth-sha256
           path: sha256.txt
 
+      - name: Checkout Homebrew formula repository
+        uses: actions/checkout@v4
+        with:
+          repository: FathAllaTechOps/homebrew-saml-auth
+          ref: main
+
       - name: Push updated formula to Homebrew repository
         run: |
           brew_sha=$(cat sha256.txt)
-          new_version="${{ github.event.inputs.version }}"
+          new_version="${{ inputs.version }}"
 
           # Update the version in the URL
           sed -i '' "s/url .*v[0-9]\+.[0-9]\+.[0-9]\+.tar.gz/url \"https:\/\/github.com\/FathAllaTechOps\/saml-auth\/archive\/v$new_version.tar.gz\"/g" Formula/saml-auth.rb
@@ -86,5 +92,5 @@ jobs:
           sed -i '' "s/sha256 .*/sha256 \"$brew_sha\"/g" Formula/saml-auth.rb
 
           git add Formula/saml-auth.rb
-          git commit -m "Update saml-auth formula to version ${{ github.event.inputs.version }}"
+          git commit -m "Update saml-auth formula to version ${{ inputs.version }}"
           git push origin main
