@@ -72,6 +72,20 @@ display_version() {
     echo "SAML version $VERSION"
 }
 
+# Function to read a password securely
+read_password() {
+    prompt=$1
+    password=""
+    while IFS= read -p "$prompt" -r -s -n 1 char; do
+        if [[ $char == $'\0' ]]; then
+            break
+        fi
+        prompt='*'
+        password+="$char"
+    done
+    echo
+}
+
 # Handle the '--help' argument
 if [ "$1" == "--help" ]; then
     display_help
@@ -99,8 +113,22 @@ if [ ${#profiles[@]} -eq 0 ]; then
 fi
 
 # Define your email and password
-read -p "Enter the email: " email
-read -p "Enter the password: " password
+
+# Set the email if it's not already set
+if [ -z "$SAML_EMAIL" ]; then
+    read -p "Enter the email: " SAML_EMAIL
+    export SAML_EMAIL
+else
+    echo "Email set to: $SAML_EMAIL"
+    read -p "Press Enter to confirm or enter a new email: " new_email
+    if [ -n "$new_email" ]; then
+        SAML_EMAIL="$new_email"
+        export SAML_EMAIL
+    fi
+fi
+
+# Use the email variable
+password=$(read_password "Enter the password for $SAML_EMAIL: ")
 
 # Display the list of profiles and prompt user to choose profiles
 echo "Available AWS Accounts:"
@@ -125,7 +153,7 @@ login_with_profile() {
     echo "Logging in with profile '$profile'"
 
     # Execute saml2aws login using the current profile
-    saml2aws login --force --username=$email --password=$password --skip-prompt
+    saml2aws login --force --username=$SAML_EMAIL --password=$password --skip-prompt
 
     echo "---------------------------------------------"
 }
@@ -194,5 +222,3 @@ if [ "$proceed" == "yes" ]; then
 else
     echo "Whitelisting operation was canceled."
 fi
-
-
