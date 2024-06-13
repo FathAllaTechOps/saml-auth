@@ -1,11 +1,15 @@
 name: Release Workflow
 
 on:
+  push:
+    branches:
+      - fix/release
   workflow_dispatch:
     inputs:
       version:
         description: 'Release version'
         required: true
+        default: v2.0.0
 
 permissions:
       id-token: write   # This is required for requesting the JWT
@@ -28,13 +32,13 @@ jobs:
           git remote set-url origin "https://$GH_TOKEN@github.com/FathAllaTechOps/saml-auth.git"
 
 
-      - name: Get latest release version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        id: get_version
-        run: |
-          latest_version=$(git describe --tags )
-          echo "version=$latest_version" >> $GITHUB_OUTPUT 
+      # - name: Get latest release version
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      #   id: get_version
+      #   run: |
+      #     latest_version=$(git describe --tags )
+      #     echo "version=$latest_version" >> $GITHUB_OUTPUT 
 
       - name: Create new release
         id: create_release
