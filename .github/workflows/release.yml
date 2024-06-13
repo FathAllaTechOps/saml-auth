@@ -1,0 +1,73 @@
+name: Release Workflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+
+      - name: Get latest release version
+        id: get_version
+        run: |
+          latest_version=$(git describe --tags --abbrev=0)
+          echo "version=$latest_version" >> $GITHUB_OUTPUT 
+
+      - name: Create new release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          release_name: Release ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+
+      - name: Get release asset
+        id: get_asset
+        run: |
+          asset_url=$(jq -r '.upload_url' <<< "${{ steps.create_release.outputs.data }}")
+          asset_url="${asset_url%\{*}"
+          echo "asset_url=$asset_url"  >> $GITHUB_OUTPUT 
+
+      - name: Calculate SHA256 checksum
+        id: calculate_sha256
+        run: |
+          asset_url="${{ steps.get_asset.outputs.asset_url }}?name=saml-auth.tar.gz"
+          wget -qO- $asset_url | shasum -a 256 | cut -d' ' -f1 > sha256.txt
+          echo "sha256=$(cat sha256.txt)"  >> $GITHUB_OUTPUT 
+
+      - name: Update Homebrew formula
+        uses: actions/upload-artifact@v4
+        with:
+          name: saml-auth-sha256
+          path: sha256.txt
+
+      - name: Push updated formula to Homebrew repository
+        run: |
+          brew_sha=$(cat sha256.txt)
+          new_version="${{ steps.get_version.outputs.version }}"
+
+          # Update the version in the URL
+          sed -i '' "s/url .*v[0-9]\+.[0-9]\+.[0-9]\+.tar.gz/url \"https:\/\/github.com\/FathAllaTechOps\/saml-auth\/archive\/v$new_version.tar.gz\"/g" Formula/saml-auth.rb
+
+          # Update the version in the formula
+          sed -i '' "s/version .*/version \"$new_version\"/g" Formula/saml-auth.rb
+
+          # Update the SHA 
+          sed -i '' "s/sha256 .*/sha256 \"$brew_sha\"/g" Formula/saml-auth.rb
+
+          git add Formula/saml-auth.rb
+          git commit -m "Update saml-auth formula to version ${{ steps.get_version.outputs.version }}"
+          git push origin main
