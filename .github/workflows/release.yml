@@ -1,20 +1,12 @@
 name: Release Workflow
 
 on:
-  # push:
-  #   branches:
-  #     - fix/release
   workflow_dispatch:
     inputs:
       version:
         description: 'Release version'
         required: true
-        default: v2.0.0
 
-permissions:
-      id-token: write   # This is required for requesting the JWT
-      contents: write    # This is required for actions/checkout
-      packages: write
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -22,23 +14,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # - name: Set up Git
-      #   env:
-      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      #   run: |
-      #     git config --global user.email "actions@github.com"
-      #     git config --global user.name "GitHub Actions"
-      #     git remote set-url origin "https://$GH_TOKEN@github.com/FathAllaTechOps/saml-auth.git"
-
-
-      # - name: Get latest release version
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      #   id: get_version
-      #   run: |
-      #     latest_version=$(git describe --tags )
-      #     echo "version=$latest_version" >> $GITHUB_OUTPUT 
 
       - name: Create new release
         env:
@@ -63,33 +38,33 @@ jobs:
         run: |
           asset_url="${{ steps.get_asset.outputs.asset_url }}?name=saml-auth.tar.gz"
           wget -qO- $asset_url | shasum -a 256 | cut -d' ' -f1 > sha256.txt
-          echo "sha256=$(cat sha256.txt)"  >> $GITHUB_OUTPUT 
+          cat sha256.txt 
 
-      - name: Update Homebrew formula
-        uses: actions/upload-artifact@v4
-        with:
-          name: saml-auth-sha256
-          path: sha256.txt
+      # - name: Update Homebrew formula
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: saml-auth-sha256
+      #     path: sha256.txt
 
-      - name: Checkout Homebrew formula repository
-        uses: actions/checkout@v4
-        with:
-          repository: FathAllaTechOps/homebrew-saml-auth
-          ref: main
+      # - name: Checkout Homebrew formula repository
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: FathAllaTechOps/homebrew-saml-auth
+      #     ref: main
 
-      - name: Push updated formula to Homebrew repository
-        run: |
-          #new_version="${{ github.event.inputs.version }}"
-          #tree
-          # Update the URL
-          #sed -i '' "s/url \".*\"/url \"https:\/\/github.com\/FathAllaTechOps\/saml-auth\/archive\/$new_version.tar.gz\"/g" Formula/saml-auth.rb
+      # - name: Push updated formula to Homebrew repository
+      #   run: |
+      #     #new_version="${{ github.event.inputs.version }}"
+      #     #tree
+      #     # Update the URL
+      #     #sed -i '' "s/url \".*\"/url \"https:\/\/github.com\/FathAllaTechOps\/saml-auth\/archive\/$new_version.tar.gz\"/g" Formula/saml-auth.rb
 
-          # Update the version in the formula
-          #sed -i '' "s/version .*/version \"$new_version\"/g" Formula/saml-auth.rb
+      #     # Update the version in the formula
+      #     #sed -i '' "s/version .*/version \"$new_version\"/g" Formula/saml-auth.rb
 
-          # Update the SHA 
-          sed -i '' "s/sha256 .*/sha256 \"${{ steps.calculate_sha256.outputs.sha256 }}\"/g" Formula/saml-auth.rb
+      #     # Update the SHA 
+      #     sed -i '' "s/sha256 .*/sha256 \"${{ steps.calculate_sha256.outputs.sha256 }}\"/g" Formula/saml-auth.rb
 
-          git add Formula/saml-auth.rb
-          git commit -m "Update saml-auth formula to version ${{ github.event.inputs.version }}"
-          git push origin main
+      #     git add Formula/saml-auth.rb
+      #     git commit -m "Update saml-auth formula to version ${{ github.event.inputs.version }}"
+      #     git push origin main
