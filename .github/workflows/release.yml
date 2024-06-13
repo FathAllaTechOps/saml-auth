@@ -23,13 +23,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Git
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git remote set-url origin "https://$GH_TOKEN@github.com/FathAllaTechOps/saml-auth.git"
+      # - name: Set up Git
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      #   run: |
+      #     git config --global user.email "actions@github.com"
+      #     git config --global user.name "GitHub Actions"
+      #     git remote set-url origin "https://$GH_TOKEN@github.com/FathAllaTechOps/saml-auth.git"
 
 
       # - name: Get latest release version
