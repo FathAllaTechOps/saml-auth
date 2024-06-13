@@ -41,6 +41,8 @@ jobs:
       #     echo "version=$latest_version" >> $GITHUB_OUTPUT 
 
       - name: Create new release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         id: create_release
         uses: actions/create-release@v1
         with:
