@@ -7,6 +7,10 @@ on:
       - main
       - fix/release
 
+permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: write    # This is required for actions/checkout
+      packages: write
 jobs:
   release:
     runs-on: ubuntu-latest
