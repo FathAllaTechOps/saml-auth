@@ -2,7 +2,7 @@
 
 CONFIG_DIR="$HOME/.saml-auth"
 CONFIG_FILE="$CONFIG_DIR/saml_profile.config"
-VERSION="v5.0.1"
+VERSION="v6.0.0"
 
 # Function to load profiles from the configuration file
 load_profiles() {
