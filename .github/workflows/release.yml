@@ -31,11 +31,12 @@ jobs:
         run: |
           asset_url=$(jq -r '.upload_url' <<< "${{ steps.create_release.outputs.data }}")
           asset_url="${asset_url%\{*}"
-          echo "asset_url=$asset_url"  >> $GITHUB_OUTPUT 
+          echo "asset_url=$asset_url"  >> $GITHUB_OUTPUT
 
       - name: Calculate SHA256 checksum
         id: calculate_sha256
         run: |
+          echo ${{ steps.get_asset.outputs.asset_url }}
           asset_url="${{ steps.get_asset.outputs.asset_url }}?name=saml-auth.tar.gz"
           wget -qO- $asset_url | shasum -a 256 | cut -d' ' -f1 > sha256.txt
           cat sha256.txt 
