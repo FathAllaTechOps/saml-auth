@@ -29,7 +29,8 @@ jobs:
       - name: Get release asset
         id: get_asset
         run: |
-          asset_url=$(jq -r '.upload_url' <<< "${{ steps.create_release.outputs.data }}")
+          echo ${{ steps.create_release.outputs.upload_url }}
+          asset_url=$(jq -r '.upload_url' <<< "${{ steps.create_release.outputs.upload_url }}")
           asset_url="${asset_url%\{*}"
           echo "asset_url=$asset_url"  >> $GITHUB_OUTPUT
 
