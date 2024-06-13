@@ -2,7 +2,7 @@
 
 CONFIG_DIR="$HOME/.saml-auth"
 CONFIG_FILE="$CONFIG_DIR/saml_profile.config"
-VERSION="v6.0.0"
+VERSION="v7.0.0"
 
 # Function to load profiles from the configuration file
 load_profiles() {
@@ -208,15 +208,12 @@ echo "#   Lower accounts are opened by default to 0.0.0.0/0.     #"
 echo "#                                                          #"
 echo "############################################################"
 
-# Get the directory of the current script
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-
 # Prompt the user to proceed with whitelisting IP to EKS clusters
 read -r -p "Do you want to proceed with whitelisting your IP to EKS Clusters? (yes/no): " proceed
 
 if [ "$proceed" == "yes" ]; then
     # Run the eks.sh script
-    "$SCRIPT_DIR/eks.sh"
+    "eks"
 else
     echo "Whitelisting operation was canceled."
 fi
