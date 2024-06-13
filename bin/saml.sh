@@ -7,6 +7,7 @@ VERSION="v5.0.1"
 # Function to load profiles from the configuration file
 load_profiles() {
     if [ -f "$CONFIG_FILE" ]; then
+        # shellcheck source=/dev/null
         source "$CONFIG_FILE"
     else
         profiles=()
@@ -28,7 +29,7 @@ config_profiles() {
     echo "Enter the AWS profiles (one per line). Enter an empty line to finish:"
     profiles=()
     while :; do
-        read -p "Profile: " profile
+        read -r -p "Profile: " profile
         [ -z "$profile" ] && break
         profiles+=("$profile")
     done
@@ -76,7 +77,7 @@ display_version() {
 read_password() {
     prompt=$1
     password=""
-    while IFS= read -p "$prompt" -r -s -n 1 char; do
+    while IFS= read -r -p "$prompt" -s -n 1 char; do
         if [[ $char == $'\0' ]]; then
             break
         fi
@@ -116,11 +117,11 @@ fi
 
 # Set the email if it's not already set
 if [ -z "$SAML_EMAIL" ]; then
-    read -p "Enter the email: " SAML_EMAIL
+    read -r -p "Enter the email: " SAML_EMAIL
     export SAML_EMAIL
 else
     echo "Email set to: $SAML_EMAIL"
-    read -p "Press Enter to confirm or enter a new email: " new_email
+    read -r -p "Press Enter to confirm or enter a new email: " new_email
     if [ -n "$new_email" ]; then
         SAML_EMAIL="$new_email"
         export SAML_EMAIL
@@ -138,7 +139,7 @@ for profile in "${profiles[@]}"; do
     ((i++))
 done
 
-read -p "Enter the numbers of the profiles you want to use, separated by commas (e.g., 1,3,5): " selected_profiles
+read -r -p "Enter the numbers of the profiles you want to use, separated by commas (e.g., 1,3,5): " selected_profiles
 
 # Convert the selection to an array of indices
 IFS=',' read -ra profile_indices <<< "$selected_profiles"
@@ -153,7 +154,7 @@ login_with_profile() {
     echo "Logging in with profile '$profile'"
 
     # Execute saml2aws login using the current profile
-    saml2aws login --force --username=$SAML_EMAIL --password=$password --skip-prompt
+    saml2aws login --force --username="$SAML_EMAIL" --password="$password" --skip-prompt
 
     echo "---------------------------------------------"
 }
@@ -189,10 +190,7 @@ for region in "${regions[@]}"; do
             # Iterate over each cluster
             while read -r cluster; do
                 # Execute the update-kubeconfig command
-                aws eks update-kubeconfig --region "$region" --name "$cluster" --profile "$profile"
-                
-                # Check if the command was successful
-                if [ $? -eq 0 ]; then
+                if aws eks update-kubeconfig --region "$region" --name "$cluster" --profile "$profile"; then
                     echo "Updated kubeconfig for cluster $cluster in region $region using profile $profile"
                 else
                     echo "Failed to update kubeconfig for cluster $cluster in region $region using profile $profile"
@@ -214,7 +212,7 @@ echo "############################################################"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
 # Prompt the user to proceed with whitelisting IP to EKS clusters
-read -p "Do you want to proceed with whitelisting your IP to EKS Clusters? (yes/no): " proceed
+read -r -p "Do you want to proceed with whitelisting your IP to EKS Clusters? (yes/no): " proceed
 
 if [ "$proceed" == "yes" ]; then
     # Run the eks.sh script

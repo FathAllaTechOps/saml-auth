@@ -32,7 +32,13 @@ get_aws_profiles() {
 echo "Choose the AWS region where the cluster exists:"
 options=("eu-west-1" "eu-central-1")
 select aws_region in "${options[@]}"; do
-  if [[ " ${options[@]} " =~ " ${aws_region} " ]]; then
+  for option in "${options[@]}"; do
+    if [[ "$aws_region" == "$option" ]]; then
+      valid=true
+      break
+    fi
+  done
+  if [ "$valid" ]; then
     break
   else
     echo "Invalid selection. Please choose a valid AWS region."
@@ -72,10 +78,10 @@ for cluster in $clusters; do
   ((i++))
 done
 
-read -p "Enter the numbers of the clusters you want to update, separated by commas (e.g., 1,2): " selected_clusters
+read -r -p "Enter the numbers of the clusters you want to update, separated by commas (e.g., 1,2): " selected_clusters
 
 # Confirmation prompt
-read -p "Are you sure you want to whitelist your IP to the selected clusters in region '$aws_region'? (y/n): " confirm
+read -r -p "Are you sure you want to whitelist your IP to the selected clusters in region '$aws_region'? (y/n): " confirm
 if [ "$confirm" != "y" ]; then
   echo "Operation canceled. Exiting."
   exit 1
@@ -97,7 +103,7 @@ for index in "${cluster_indices[@]}"; do
     updatedCidrs="$currentCidrs,$newCidr"
 
     # Update the EKS cluster with the updated publicAccessCidrs
-    aws eks update-cluster-config --name "$cluster_name" --region "$aws_region" --resources-vpc-config publicAccessCidrs="$updatedCidrs" --profile "$aws_profile" 2>&1 > /dev/null
+    aws eks update-cluster-config --name "$cluster_name" --region "$aws_region" --resources-vpc-config publicAccessCidrs="$updatedCidrs" --profile "$aws_profile" > /dev/null 2>&1
 
     echo "EKS cluster '$cluster_name' in region '$aws_region' has been updated with the external IP address."
   else
@@ -106,4 +112,3 @@ for index in "${cluster_indices[@]}"; do
 done
 
 echo "Operation completed."
-

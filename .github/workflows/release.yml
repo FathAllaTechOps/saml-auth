@@ -15,6 +15,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install ShellCheck
+        run: apt-get install -y shellcheck
+
+      - name: Run ShellCheck
+        run: |
+          # Find all shell scripts and run ShellCheck
+          find . -name "*.sh" -print0 | xargs -0 shellcheck
+
       - name: Create new release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
