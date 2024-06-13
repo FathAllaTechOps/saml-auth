@@ -2,6 +2,7 @@
 
 CONFIG_DIR="$HOME/.saml-auth"
 CONFIG_FILE="$CONFIG_DIR/saml_profile.config"
+VERSION="v4.0.0"
 
 # Function to load profiles from the configuration file
 load_profiles() {
@@ -66,9 +67,20 @@ Description:
 EOF
 }
 
+# Function to display version information
+display_version() {
+    echo "SAML version $VERSION"
+}
+
 # Handle the '--help' argument
 if [ "$1" == "--help" ]; then
     display_help
+    exit 0
+fi
+
+# Handle the '--version' argument
+if [ "$1" == "--version" ]; then
+    display_version
     exit 0
 fi
 
