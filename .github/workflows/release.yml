@@ -79,13 +79,13 @@ jobs:
 
       - name: Push updated formula to Homebrew repository
         run: |
-          new_version="${{ github.event.inputs.version }}"
-          tree
+          #new_version="${{ github.event.inputs.version }}"
+          #tree
           # Update the URL
-          sed -i '' "s/url \".*\"/url \"https:\/\/github.com\/FathAllaTechOps\/saml-auth\/archive\/$new_version.tar.gz\"/g" Formula/saml-auth.rb
+          #sed -i '' "s/url \".*\"/url \"https:\/\/github.com\/FathAllaTechOps\/saml-auth\/archive\/$new_version.tar.gz\"/g" Formula/saml-auth.rb
 
           # Update the version in the formula
-          sed -i '' "s/version .*/version \"$new_version\"/g" Formula/saml-auth.rb
+          #sed -i '' "s/version .*/version \"$new_version\"/g" Formula/saml-auth.rb
 
           # Update the SHA 
           sed -i '' "s/sha256 .*/sha256 \"${{ steps.calculate_sha256.outputs.sha256 }}\"/g" Formula/saml-auth.rb
