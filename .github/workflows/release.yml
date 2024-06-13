@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install ShellCheck
-        run: apt-get install -y shellcheck
+        run: sudo apt-get install -y shellcheck
 
       - name: Run ShellCheck
         run: |
