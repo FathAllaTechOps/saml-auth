@@ -49,7 +49,7 @@ Example:
   
 Description:
   This script helps to authenticate to multiple AWS accounts using SAML.
-  It allows you to configure AWS profiles and update kubeconfig for EKS clusters.
+  It allows you to configure AWS profiles and update Kubeconfig for EKS clusters.
 
   Commands:
     saml config      Prompts the user to input AWS profiles and saves them to a
