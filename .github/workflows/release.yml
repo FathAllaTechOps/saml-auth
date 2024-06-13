@@ -29,9 +29,11 @@ jobs:
 
 
       - name: Get latest release version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         id: get_version
         run: |
-          latest_version=$(git describe --tags --abbrev=0)
+          latest_version=$(git describe --tags )
           echo "version=$latest_version" >> $GITHUB_OUTPUT 
 
       - name: Create new release
