@@ -2,7 +2,7 @@
 
 CONFIG_DIR="$HOME/.saml-auth"
 CONFIG_FILE="$CONFIG_DIR/saml_profile.config"
-VERSION="v7.0.0"
+VERSION="v8.0.0"
 REGIONS=(
     "eu-west-1"
     "eu-central-1"
@@ -38,6 +38,7 @@ print_numbered_list() {
     echo "$header"
     local i=1
     eval "local arr=(\"\${${array_name}[@]}\")"
+    # shellcheck disable=SC2154
     for item in "${arr[@]}"; do
         echo "$i) $item"
         ((i++))
@@ -102,7 +103,7 @@ read_credentials() {
 
     # Password
     if [ -z "$SAML_PASSWORD" ]; then
-        read -s -p "Enter the password: " SAML_PASSWORD
+        read -s -r -p "Enter the password: " SAML_PASSWORD
         export SAML_PASSWORD
     fi
 }
@@ -138,11 +139,10 @@ switch_context_from_profile() {
     fi
 
     echo "Validating authentication for profile: $selected_profile"
-    aws sts get-caller-identity --profile "$selected_profile" > /dev/null 2>&1
 
-    if [ $? -ne 0 ]; then 
+    if ! aws sts get-caller-identity --profile "$selected_profile" > /dev/null 2>&1; then
         echo "❌ Failed to validate authentication for profile $selected_profile, Triggering 'saml login'."
-        login_with_profile "$profile"
+        login_with_profile "$selected_profile"
     fi
 
     while true; do
@@ -189,7 +189,7 @@ switch_context_from_profile() {
         selected_cluster="${selected_entry%%|*}"
         selected_region="${selected_entry##*|}"
 
-        if aws eks update-kubeconfig --region "$selected_region" --name "$selected_cluster" --profile "$selected_profile" --alias $selected_cluster > /dev/null 2>&1; then
+        if aws eks update-kubeconfig --region "$selected_region" --name "$selected_cluster" --profile "$selected_profile" --alias "$selected_cluster" > /dev/null 2>&1; then
             echo "✅ Switched kubeconfig context to cluster '$selected_cluster' in region '$selected_region' using profile '$selected_profile'"
             break
         else
@@ -200,9 +200,7 @@ switch_context_from_profile() {
 
 switch_context_from_kubeconfig() {
     local context="$1"
-    kubectl config use-context "$context" > /dev/null 2>&1
-
-    if [ $? -eq 0 ]; then
+    if kubectl config use-context "$context" > /dev/null 2>&1; then
         echo "✅ Switched kubeconfig context to '$context'"
     else
         echo "❌ Failed to switch kubeconfig context to '$context'"
@@ -213,17 +211,13 @@ function update_kubeconfig() {
     local profile="$1"
     for region in "${REGIONS[@]}"; do
         # Get a list of available EKS clusters for the current profile and region
-        clusters=$(aws eks list-clusters --output text --profile "$profile" --region "$region" | awk '{print $2}')
-        
-        # Iterate over each cluster
-        while read -r cluster; do
-            # Execute the update-kubeconfig command
-            if aws eks update-kubeconfig --region "$region" --name "$cluster" --profile "$profile" --alias $cluster > /dev/null 2>&1; then
-                echo "Updated kubeconfig for cluster $cluster in region $region using profile $profile"
+        aws eks list-clusters --output text --profile "$profile" --region "$region" | awk '{print $2}' | while read -r cluster; do
+            if aws eks update-kubeconfig --region "$region" --name "$cluster" --profile "$profile" --alias "$cluster" > /dev/null 2>&1; then
+                echo "✅ Updated kubeconfig for cluster $cluster in region $region using profile $profile"
             else
-                echo "Failed to update kubeconfig for cluster $cluster in region $region using profile $profile"
+                echo "❌ Failed to update kubeconfig for cluster $cluster in region $region using profile $profile"
             fi
-        done <<< "$clusters"
+        done
     done
 }
 
@@ -327,6 +321,7 @@ done
 if [ "$1" == "context" ]; then
     ############ Handle Context Switching ################
 
+    # shellcheck disable=SC2034
     actions=("Select context from current kubeconfig" "Select context from profile")
     print_numbered_list actions "Available actions:"
     read -r -p "Choose an option to select a context: " switch_context_action
