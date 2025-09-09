@@ -328,7 +328,7 @@ if [ "$1" == "context" ]; then
 
     if [ "$switch_context_action" == "1" ]; then
         switch_context_profile=$(get_all_kubeconfig_contexts | fzf --prompt="Select kube context: ")
-        switch_context_from_kubeconfig $switch_context_profile
+        switch_context_from_kubeconfig "$switch_context_profile"
     else
         # Load profiles from the configuration file
         load_profiles
