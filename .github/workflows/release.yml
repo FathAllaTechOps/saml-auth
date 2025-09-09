@@ -40,30 +40,30 @@ jobs:
           curl -L -o saml-auth-${{ github.event.inputs.version }}.tar.gz https://github.com/FathAllaTechOps/saml-auth/archive/${{ github.event.inputs.version }}.tar.gz
           shasum -a 256 saml-auth-${{ github.event.inputs.version }}.tar.gz
 
-      # - name: Update Homebrew formula
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: saml-auth-sha256
-      #     path: sha256.txt
+      - name: Update Homebrew formula
+        uses: actions/upload-artifact@v4
+        with:
+          name: saml-auth-sha256
+          path: sha256.txt
 
-      # - name: Checkout Homebrew formula repository
-      #   uses: actions/checkout@v4
-      #   with:
-      #     repository: FathAllaTechOps/homebrew-saml-auth
-      #     ref: main
+      - name: Checkout Homebrew formula repository
+        uses: actions/checkout@v4
+        with:
+          repository: FathAllaTechOps/homebrew-saml-auth
+          ref: main
 
-      # - name: Push updated formula to Homebrew repository
-      #   run: |
-      #     #new_version="${{ github.event.inputs.version }}"
-      #     #tree
-      #     # Update the URL
-      #     #sed -i '' "s/url \".*\"/url \"https:\/\/github.com\/FathAllaTechOps\/saml-auth\/archive\/$new_version.tar.gz\"/g" Formula/saml-auth.rb
+      - name: Push updated formula to Homebrew repository
+        run: |
+          #new_version="${{ github.event.inputs.version }}"
+          #tree
+          # Update the URL
+          #sed -i '' "s/url \".*\"/url \"https:\/\/github.com\/FathAllaTechOps\/saml-auth\/archive\/$new_version.tar.gz\"/g" Formula/saml-auth.rb
 
-      #     # Update the version in the formula
-      #     #sed -i '' "s/version .*/version \"$new_version\"/g" Formula/saml-auth.rb
+          # Update the version in the formula
+          #sed -i '' "s/version .*/version \"$new_version\"/g" Formula/saml-auth.rb
 
-      #     # Update the SHA 
-      #     sed -i '' "s/sha256 .*/sha256 \"${{ steps.calculate_sha256.outputs.sha256 }}\"/g" Formula/saml-auth.rb
+          # Update the SHA 
+          sed -i '' "s/sha256 .*/sha256 \"${{ steps.calculate_sha256.outputs.sha256 }}\"/g" Formula/saml-auth.rb
 
       #     git add Formula/saml-auth.rb
       #     git commit -m "Update saml-auth formula to version ${{ github.event.inputs.version }}"
