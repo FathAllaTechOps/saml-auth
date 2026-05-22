@@ -27,12 +27,12 @@ jobs:
           fi
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install ShellCheck
         run: |
           # Pin to a specific version for reproducible builds
-          SHELLCHECK_VERSION="v0.10.0"
+          SHELLCHECK_VERSION="v0.11.0"
           curl -sSL "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" \
             | tar -xJ --strip-components=1 -C /usr/local/bin shellcheck-${SHELLCHECK_VERSION}/shellcheck
 
@@ -40,7 +40,7 @@ jobs:
         run: find . -name "*.sh" -print0 | xargs -0 shellcheck
 
       - name: Create release and upload scripts
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.version }}
           name: Release ${{ github.event.inputs.version }}
