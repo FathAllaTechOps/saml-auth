@@ -1,70 +1,61 @@
 name: Release Workflow
 run-name: Release ${{ github.event.inputs.version }}
+
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version'
+        description: 'Release version (e.g. v8.0.0)'
         required: true
+        # Enforces semver vX.Y.Z format — prevents arbitrary input from reaching shell commands
+        type: string
+
+# Minimal permissions: only write access needed is to create the release asset
+permissions:
+  contents: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Validate version format
+        run: |
+          if ! echo "${{ github.event.inputs.version }}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Error: version must match vX.Y.Z (e.g. v8.0.0)"
+            exit 1
+          fi
+
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Install ShellCheck
-        run: sudo apt-get install -y shellcheck
+        run: |
+          # Pin to a specific version for reproducible builds
+          SHELLCHECK_VERSION="v0.10.0"
+          curl -sSL "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" \
+            | tar -xJ --strip-components=1 -C /usr/local/bin shellcheck-${SHELLCHECK_VERSION}/shellcheck
 
       - name: Run ShellCheck
-        run: |
-          # Find all shell scripts and run ShellCheck
-          find . -name "*.sh" -print0 | xargs -0 shellcheck
+        run: find . -name "*.sh" -print0 | xargs -0 shellcheck
 
-      - name: Create new release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Create release and upload scripts
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.version }}
-          release_name: Release ${{ github.event.inputs.version }}
+          name: Release ${{ github.event.inputs.version }}
           draft: false
           prerelease: false
+          files: |
+            bin/saml.sh
+            bin/eks.sh
 
       - name: Calculate SHA256 checksum
         id: calculate_sha256
         run: |
-          curl -L -o saml-auth-${{ github.event.inputs.version }}.tar.gz https://github.com/FathAllaTechOps/saml-auth/archive/${{ github.event.inputs.version }}.tar.gz
-          shasum -a 256 saml-auth-${{ github.event.inputs.version }}.tar.gz
-
-      # - name: Update Homebrew formula
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: saml-auth-sha256
-      #     path: sha256.txt
-
-      # - name: Checkout Homebrew formula repository
-      #   uses: actions/checkout@v4
-      #   with:
-      #     repository: FathAllaTechOps/homebrew-saml-auth
-      #     ref: main
-
-      # - name: Push updated formula to Homebrew repository
-      #   run: |
-      #     #new_version="${{ github.event.inputs.version }}"
-      #     #tree
-      #     # Update the URL
-      #     #sed -i '' "s/url \".*\"/url \"https:\/\/github.com\/FathAllaTechOps\/saml-auth\/archive\/$new_version.tar.gz\"/g" Formula/saml-auth.rb
-
-      #     # Update the version in the formula
-      #     #sed -i '' "s/version .*/version \"$new_version\"/g" Formula/saml-auth.rb
-
-      #     # Update the SHA 
-      #     sed -i '' "s/sha256 .*/sha256 \"${{ steps.calculate_sha256.outputs.sha256 }}\"/g" Formula/saml-auth.rb
-
-      #     git add Formula/saml-auth.rb
-      #     git commit -m "Update saml-auth formula to version ${{ github.event.inputs.version }}"
-      #     git push origin main
+          VERSION="${{ github.event.inputs.version }}"
+          TARBALL="saml-auth-${VERSION}.tar.gz"
+          curl -sSL -o "$TARBALL" "https://github.com/FathAllaTechOps/saml-auth/archive/${VERSION}.tar.gz"
+          SHA=$(shasum -a 256 "$TARBALL" | awk '{print $1}')
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "SHA256: $SHA"
